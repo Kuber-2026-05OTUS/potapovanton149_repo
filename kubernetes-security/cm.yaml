@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: web-server-cm
+  namespace: homework
+data:
+  value_1: "1"
+  value_2: "true"
+  value_3: "demo"
