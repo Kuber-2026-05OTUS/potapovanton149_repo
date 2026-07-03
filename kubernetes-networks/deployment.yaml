@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-server-deployment
+  labels:
+    app: web-server
+  namespace: homework
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: web-server
+  template:
+    metadata:
+      labels:
+        app: web-server
+    spec:
+      initContainers:
+        - name: init-container
+          image: busybox:latest
+          command:
+            - wget
+            - "-O"
+            - "/init/index.html"
+            - "https://example.com"
+          volumeMounts:
+            - name: workdir
+              mountPath: "/init"
+      containers:
+        - name: web-server
+          image: busybox:latest
+          command:
+            - httpd
+            - "-f"
+            - "-p"
+            - "8000"
+            - "-h"
+            - "/homework"
+          ports:
+            - containerPort: 8000
+          volumeMounts:
+            - name: workdir
+              mountPath: "/homework"
+          lifecycle:
+            preStop:
+              exec:
+                command: [ 'sh', '-c', 'rm -f /homework/index.html' ]
+          readinessProbe:
+            httpGet:
+              path: /index.html
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 5
+      volumes:
+        - name: workdir
+          emptyDir: {}
+      nodeSelector:
+        homework: "true"
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
