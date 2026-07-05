@@ -1,0 +1,22 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: web-server-gateway
+  namespace: homework
+spec:
+  gatewayClassName: web-server-class
+  listeners:
+    - name: http
+      protocol: HTTP
+      port: 8000
+      hostname: "homework.otus"
+      allowedRoutes:
+        namespaces:
+          from: All
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: GatewayClass
+metadata:
+  name: web-server-class
+spec:
+  controllerName: traefik.io/gateway-controller
