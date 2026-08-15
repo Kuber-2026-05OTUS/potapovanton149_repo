@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "web-server.fullname" . }}
+  labels:
+    {{- include "web-server.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "web-server.selectorLabels" . | nindent 6 }}
+  strategy:
+    type: {{ .Values.strategy.type }}
+    {{- if eq .Values.strategy.type "RollingUpdate" }}
+    rollingUpdate:
+      maxUnavailable: {{ .Values.strategy.rollingUpdate.maxUnavailable }}
+    {{- end }}
+  template:
+    metadata:
+      labels:
+        {{- include "web-server.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "web-server.serviceAccountName" . }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.initContainers.enabled }}
+      initContainers:
+        - name: {{ .Values.initContainers.name }}
+          image: "{{ .Values.initContainers.image.repository }}:{{ .Values.initContainers.image.tag }}"
+          imagePullPolicy: {{ .Values.initContainers.image.pullPolicy | default "IfNotPresent" }}
+          command:
+            {{- toYaml .Values.initContainers.command | nindent 12 }}
+          volumeMounts:
+            {{- toYaml .Values.initContainers.volumeMounts | nindent 12 }}
+      {{- end }}
+      containers:
+        - name: {{ .Values.container.name }}
+          image: "{{ .Values.container.image.repository }}:{{ .Values.container.image.tag }}"
+          imagePullPolicy: {{ .Values.container.image.pullPolicy }}
+          command:
+            {{- toYaml .Values.container.command | nindent 12 }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.container.port }}
+              protocol: TCP
+          volumeMounts:
+            - name: workdir
+              mountPath: "/homework"
+            - name: {{ include "web-server.configMapName" . }}
+              mountPath: "/homework/conf"
+          {{- if .Values.container.lifecycle }}
+          lifecycle:
+            {{- toYaml .Values.container.lifecycle | nindent 12 }}
+          {{- end }}
+          {{- if .Values.readinessProbe.enabled }}
+          readinessProbe:
+            {{- toYaml .Values.readinessProbe.probe | nindent 12 }}
+          {{- end }}
+          {{- if .Values.livenessProbe.enabled }}
+          livenessProbe:
+            {{- toYaml .Values.livenessProbe.probe | nindent 12 }}
+          {{- end }}
+      volumes:
+        - name: workdir
+          persistentVolumeClaim:
+            claimName: {{ include "web-server.pvcName" . }}
+        - name: {{ include "web-server.configMapName" . }}
+          configMap:
+            name: {{ include "web-server.configMapName" . }}

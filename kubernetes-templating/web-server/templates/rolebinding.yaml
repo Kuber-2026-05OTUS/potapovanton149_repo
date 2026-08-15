@@ -1,0 +1,16 @@
+{{- if .Values.rbac.cdRoleBinding.enabled }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ .Values.rbac.cdRoleBinding.name }}
+  labels:
+    {{- include "web-server.labels" . | nindent 4 }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ .Values.serviceAccounts.cd.name }}
+    namespace: {{ .Release.Namespace }}
+roleRef:
+  kind: {{ .Values.rbac.cdRoleBinding.roleRef.kind }}
+  name: {{ .Values.rbac.cdRoleBinding.roleRef.name }}
+  apiGroup: rbac.authorization.k8s.io
+{{- end }}

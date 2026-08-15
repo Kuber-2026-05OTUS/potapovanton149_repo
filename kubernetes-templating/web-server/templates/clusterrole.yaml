@@ -1,0 +1,10 @@
+{{- if .Values.rbac.monitoringClusterRole.enabled }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ .Values.rbac.monitoringClusterRole.name }}
+  labels:
+    {{- include "web-server.labels" . | nindent 4 }}
+rules:
+  {{- toYaml .Values.rbac.monitoringClusterRole.rules | nindent 2 }}
+{{- end }}
