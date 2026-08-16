@@ -1,0 +1,10 @@
+apiVersion: otus.homework/v1
+kind: MySQL
+metadata:
+  name: mysqls-crd-crd
+  namespace: homework
+spec: 
+  image: mysql:5.7
+  database: databaseMySQL
+  password: "12345q6"
+  storage_size: 1Gi
