@@ -1,0 +1,29 @@
+{{- if .Values.gateway.enabled }}
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: {{ include "web-server.fullname" . }}-gateway
+  labels:
+    {{- include "web-server.labels" . | nindent 4 }}
+spec:
+  gatewayClassName: {{ .Values.gateway.className }}
+  listeners:
+    - name: {{ .Values.gateway.listener.name }}
+      protocol: {{ .Values.gateway.listener.protocol }}
+      port: {{ .Values.gateway.listener.port }}
+      hostname: {{ .Values.gateway.hostname | quote }}
+      allowedRoutes:
+        namespaces:
+          from: {{ .Values.gateway.allowedRoutes.namespaces.from }}
+{{- end }}
+---
+{{- if .Values.gatewayClass.enabled }}
+apiVersion: gateway.networking.k8s.io/v1
+kind: GatewayClass
+metadata:
+  name: {{ .Values.gatewayClass.name }}
+  labels:
+    {{- include "web-server.labels" . | nindent 4 }}
+spec:
+  controllerName: {{ .Values.gatewayClass.controllerName }}
+{{- end }}

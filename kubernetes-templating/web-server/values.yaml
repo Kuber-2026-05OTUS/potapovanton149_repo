@@ -1,0 +1,197 @@
+replicaCount: 3
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+container:
+  name: web-server
+  image:
+    repository: busybox
+    tag: latest
+    pullPolicy: IfNotPresent
+  port: 8000
+  command:
+    - sh
+    - -c
+    - |
+      httpd -f -p 8000 -h /homework
+  volumeMounts:
+    - name: workdir
+      mountPath: "/homework"
+    - name: web-server-cm
+      mountPath: "/homework/conf"
+  lifecycle:
+    preStop:
+      exec:
+        command: ['sh', '-c', 'rm -f /homework/index.html']
+
+initContainers:
+  enabled: true
+  name: init-container
+  image:
+    repository: busybox
+    tag: latest
+    pullPolicy: IfNotPresent
+  command:
+    - sh
+    - -c
+    - |
+      wget -O /init/index.html https://example.com
+      wget --no-check-certificate --header="Authorization: Bearer $(cat /var/run/secrets/kubernetes.io/serviceaccount/token)" -O /init/metrics.html "https://${KUBERNETES_SERVICE_HOST}:${KUBERNETES_SERVICE_PORT}/metrics"
+  volumeMounts:
+    - name: workdir
+      mountPath: "/init"
+
+readinessProbe:
+  enabled: true
+  probe:
+    httpGet:
+      path: /index.html
+      port: 8000
+    initialDelaySeconds: 5
+    periodSeconds: 5
+
+livenessProbe:
+  enabled: false
+  probe:
+    httpGet:
+      path: /index.html
+      port: 8000
+    initialDelaySeconds: 10
+    periodSeconds: 10
+
+nodeSelector:
+  homework: "true"
+
+strategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxUnavailable: 1
+
+serviceAccount:
+  create: true
+  name: monitoring
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8000
+
+gateway:
+  enabled: true
+  className: web-server-class
+  hostname: "homework.otus"
+  listener:
+    name: http
+    protocol: HTTP
+    port: 8000
+  allowedRoutes:
+    namespaces:
+      from: All
+
+gatewayClass:
+  enabled: true
+  name: web-server-class
+  controllerName: traefik.io/gateway-controller
+
+httpRoute:
+  enabled: true
+  rules:
+    homepage:
+      enabled: true
+      match:
+        path:
+          type: Exact
+          value: /homepage
+      filter:
+        urlRewrite:
+          type: ReplaceFullPath
+          replaceFullPath: /index.html
+    root:
+      enabled: true
+      match:
+        path:
+          type: PathPrefix
+          value: /
+
+configmap:
+  name: "cm"  
+  data:
+    value_1: "1"
+    value_2: "true"
+    value_3: "demo"
+
+pvc:
+  enabled: true
+  name: web-server-pvc
+  accessModes:
+    - ReadWriteOnce
+  volumeMode: Filesystem
+  storage: 1Mi
+  storageClassName: web-server-sc
+
+storageClass:
+  enabled: true
+  name: web-server-sc
+  provisioner: rancher.io/local-path
+  reclaimPolicy: Delete
+  volumeBindingMode: WaitForFirstConsumer
+
+serviceAccounts:
+  monitoring:
+    create: true
+    name: monitoring
+  cd:
+    create: true
+    name: cd
+
+rbac:
+  monitoringClusterRole:
+    enabled: true
+    name: monitoring-cr
+    rules:
+      - nonResourceURLs: ["/metrics"]
+        verbs: ["get"]
+  
+  monitoringClusterRoleBinding:
+    enabled: true
+    name: monitoring-crb
+  
+  cdRoleBinding:
+    enabled: true
+    name: cd-cr
+    roleRef:
+      kind: ClusterRole
+      name: admin
+
+secrets:
+  cdSaSecret:
+    create: true
+    name: cd-sa-secret
+
+autoscaling:
+  enabled: false
+
+redis:
+  enabled: true
+  architecture: standalone
+  auth:
+    enabled: false
+  image:
+    registry: docker.io
+    repository: redis
+    tag: "7.2"
+    pullPolicy: IfNotPresent
+  master:
+    persistence:
+      enabled: false
+    resources:
+      requests:
+        memory: "128Mi"
+        cpu: "100m"
+      limits:
+        memory: "256Mi"
+        cpu: "200m"
+  replica:
+    replicaCount: 0
