@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: operator-config-env
+  namespace: homework
+data:
+  WATCH_NAMESPACE: homework
