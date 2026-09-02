@@ -1,0 +1,41 @@
+deploymentMode: SingleBinary
+
+loki:
+  auth_enabled: false
+  useTestSchema: true
+  storage:
+    type: s3
+    bucketNames:
+      chunks: loki-logs
+      ruler: loki-ruler
+      admin: loki-admin
+    s3:
+      endpoint: minio.storage.svc.cluster.local:9000
+      accessKeyId: admin
+      secretAccessKey: password123
+      insecure: true
+      s3ForcePathStyle: true
+
+singleBinary:
+  replicas: 2
+
+backend:
+  replicas: 0
+
+read:
+  replicas: 0
+
+write:
+  replicas: 0
+
+chunksCache:
+  enabled: false
+
+resultsCache:
+  enabled: false
+
+gateway:
+  enabled: false
+
+memberlist:
+  enabled: false
