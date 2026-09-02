@@ -1,0 +1,25 @@
+nodeSelector:
+  node-role: infra
+
+tolerations:
+  - key: node-role
+    operator: Equal
+    value: infra
+    effect: NoSchedule
+
+persistence:
+  enabled: false
+
+service:
+  type: NodePort
+  nodePort: 30300
+
+datasources:
+  datasources.yaml:
+    apiVersion: 1
+    datasources:
+      - name: Loki
+        type: loki
+        access: proxy
+        url: http://10.233.12.255:3100
+        isDefault: true
