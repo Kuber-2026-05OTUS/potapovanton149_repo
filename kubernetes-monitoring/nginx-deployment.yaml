@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-with-metrics
+  namespace: homework
+  labels:
+    app: nginx-with-metrics
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx-with-metrics
+  template:
+    metadata:
+      labels:
+        app: nginx-with-metrics
+    spec:
+      containers:
+      - name: nginx
+        image: potapovanton149/nginx-with-metrics:v1
+        ports:
+        - containerPort: 80
+          name: http
+        - containerPort: 8080
+          name: metrics
