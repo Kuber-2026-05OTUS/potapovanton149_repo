@@ -1,0 +1,27 @@
+mode: standalone
+rootUser: admin
+rootPassword: password123
+
+resources:
+  requests:
+    memory: 512Mi
+    cpu: 100m
+  limits:
+    memory: 1Gi
+
+persistence:
+  size: 10Gi
+  storageClass: local-path
+
+service:
+  type: NodePort
+  nodePort: 32000
+
+nodeSelector:
+  node-role: infra
+
+tolerations:
+  - key: node-role
+    operator: Equal
+    value: infra
+    effect: NoSchedule
