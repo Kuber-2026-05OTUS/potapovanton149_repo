@@ -1,0 +1,26 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kubernetes-templating
+  namespace: argocd
+spec:
+  project: otus
+  source:
+    repoURL: 'https://github.com/Kuber-2026-05OTUS/potapovanton149_repo.git'
+    targetRevision: HEAD
+    path: 'kubernetes-templating/web-server'
+    helm:
+      valueFiles:
+        - values.yaml
+      parameters:
+        - name: replicaCount
+          value: "3"
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: homeworkhelm
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      prune: true
+      selfHeal: true
