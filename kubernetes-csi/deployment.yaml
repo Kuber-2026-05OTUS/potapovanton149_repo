@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: s3-test-app
+  namespace: homework
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: s3-test
+  template:
+    metadata:
+      labels:
+        app: s3-test
+    spec:
+      containers:
+        - name: s3-test-container
+          image: busybox:latest
+          command: ["/bin/sh"]
+          args:
+            - -c
+            - |
+              while true; do
+                echo "Hello from S3 at $(date)" >> /data/test-file.txt
+                sleep 10
+              done
+          volumeMounts:
+            - name: s3-storage
+              mountPath: /data
+      volumes:
+        - name: s3-storage
+          persistentVolumeClaim:
+            claimName: csi-s3-pvc
