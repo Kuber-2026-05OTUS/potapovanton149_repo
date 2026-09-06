@@ -4,7 +4,7 @@ metadata:
   name: web-server-gateway
   namespace: homework
 spec:
-  gatewayClassName: web-server-class
+  gatewayClassName: web-server-class-net
   listeners:
     - name: http
       protocol: HTTP
@@ -17,6 +17,6 @@ spec:
 apiVersion: gateway.networking.k8s.io/v1
 kind: GatewayClass
 metadata:
-  name: web-server-class
+  name: web-server-class-net
 spec:
   controllerName: traefik.io/gateway-controller
