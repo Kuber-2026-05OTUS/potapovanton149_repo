@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ include "web-server.fullname" . }}-cm
+  name: {{ include "web-server.configMapName" . }}
   labels:
     {{- include "web-server.labels" . | nindent 4 }}
 data:
