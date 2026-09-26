@@ -1,0 +1,31 @@
+global:
+    name: consul
+    datacenter: dc1
+
+server:
+    replicas: 3
+    bootstrapExpect: 3
+    disruptionBudget:
+        enabled: true
+        maxUnavailable: 1
+    affinity: |
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app: consul
+                    component: server
+                    release: consul
+                topologyKey: kubernetes.io/hostname
+
+client:
+    enabled: true
+    grpc: true
+
+connectInject:
+    enabled: true
+
+controller:
+    enabled: true
