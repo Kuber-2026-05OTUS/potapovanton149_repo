@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: otus
+  namespace: argocd
+spec:
+  description: "Otus project for homework"
+  sourceRepos:
+    - 'https://github.com/Kuber-2026-05OTUS/potapovanton149_repo.git'
+  destinations:
+    - namespace: '*'
+      server: 'https://kubernetes.default.svc'
+  clusterResourceWhitelist:
+    - group: 'gateway.networking.k8s.io'
+      kind: 'GatewayClass'
+    - group: 'storage.k8s.io'
+      kind: 'StorageClass'
+    - group: 'rbac.authorization.k8s.io'
+      kind: 'ClusterRole'
+    - group: 'rbac.authorization.k8s.io'
+      kind: 'ClusterRoleBinding'
+    - group: ''
+      kind: 'Namespace'
+    - group: 'apiextensions.k8s.io'
+      kind: 'CustomResourceDefinition'
+  namespaceResourceWhitelist:
+    - group: '*'
+      kind: '*'
